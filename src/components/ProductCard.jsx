@@ -5,9 +5,10 @@ import { addToCart } from '../redux/cartActions';
 export default function ProductCard({ product, onToast }) {
   const dispatch = useDispatch();
   const [isAdded, setIsAdded] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // Check how many of this item are already in the cart
+  // Read item count already in Redux cart
   const cartItem = useSelector((state) =>
     state.cart.items.find((item) => item.id === product.id)
   );
@@ -20,7 +21,7 @@ export default function ProductCard({ product, onToast }) {
     dispatch(addToCart(product));
     setIsAdded(true);
     if (onToast) {
-      onToast(`Added "${product.name}" to cart`);
+      onToast(`"${product.name}" a été ajouté au panier !`);
     }
 
     setTimeout(() => {
@@ -28,80 +29,100 @@ export default function ProductCard({ product, onToast }) {
     }, 1200);
   };
 
+  const formattedPrice = product.price.toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const formattedOldPrice = product.oldPrice
+    ? product.oldPrice.toLocaleString('fr-FR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : null;
+
   return (
-    <article className="product-card">
-      {/* Thumbnail area with badge */}
-      <div className="product-media">
-        {product.badge && (
-          <span className={`product-flag flag-${product.badge.toLowerCase().replace(/[^a-z]/g, '')}`}>
-            {product.badge}
-          </span>
+    <article className="tn-product-card">
+      {/* Top row: discount badge + wishlist toggle */}
+      <div className="tn-card-top-row">
+        {product.discount ? (
+          <span className="tn-discount-pill">{product.discount}</span>
+        ) : (
+          <span />
         )}
+
+        <button
+          type="button"
+          className={`tn-wishlist-btn ${isWishlisted ? 'active' : ''}`}
+          onClick={() => setIsWishlisted(!isWishlisted)}
+          aria-label="Ajouter aux favoris"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={isWishlisted ? '#ef4444' : 'none'} stroke={isWishlisted ? '#ef4444' : 'currentColor'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Product Image */}
+      <div className="tn-card-media">
         <img
           src={
             imgError
-              ? `https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=700&q=80`
+              ? 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=500&q=80'
               : product.image
           }
           alt={product.name}
-          className="product-img"
+          className="tn-card-img"
           loading="lazy"
           onError={() => setImgError(true)}
         />
-        <span className="product-category-tag">{product.category}</span>
       </div>
 
-      {/* Card Content */}
-      <div className="product-body">
-        {/* Rating and Reviews */}
-        <div className="product-meta">
-          <div className="product-rating" aria-label={`Rated ${product.rating} out of 5 stars`}>
-            <span className="star-icon">★</span>
-            <span className="rating-value">{product.rating}</span>
-            <span className="reviews-count">({product.reviews})</span>
+      {/* Product Info */}
+      <div className="tn-card-info">
+        <h3 className="tn-card-title">{product.name}</h3>
+
+        {/* Rating stars & review count */}
+        <div className="tn-card-rating">
+          <div className="tn-stars" aria-label={`Note : ${product.rating} sur 5`}>
+            {'★★★★★'.slice(0, Math.round(product.rating))}
           </div>
-          <span className={`stock-status ${product.stock <= 5 ? 'stock-low' : 'stock-ok'}`}>
-            {product.stock <= 5 ? `Only ${product.stock} left` : `${product.stock} in stock`}
-          </span>
+          <span className="tn-rating-count">({product.reviews})</span>
         </div>
 
-        <h3 className="product-title">{product.name}</h3>
-        <p className="product-desc">{product.description}</p>
+        {/* Price display with DA */}
+        <div className="tn-card-pricing">
+          <span className="tn-price-current">{formattedPrice} DA</span>
+          {formattedOldPrice && (
+            <span className="tn-price-old">{formattedOldPrice} DA</span>
+          )}
+        </div>
 
-        {/* Footer: Price + Add Button */}
-        <div className="product-footer">
-          <div className="price-block">
-            <span className="price-currency">$</span>
-            <span className="price-amount">{product.price.toFixed(2)}</span>
-          </div>
-
-          <button
-            type="button"
-            className={`add-cart-btn ${isAdded ? 'btn-success' : ''} ${isOutOfStock ? 'btn-disabled' : ''}`}
-            onClick={handleAddToCart}
-            disabled={isOutOfStock}
-            aria-label={`Add ${product.name} to cart`}
-          >
+        {/* Action Button: Ajouter au panier */}
+        <button
+          type="button"
+          className={`tn-add-cart-btn ${isAdded ? 'added' : ''} ${isOutOfStock ? 'disabled' : ''}`}
+          onClick={handleAddToCart}
+          disabled={isOutOfStock}
+          aria-label={`Ajouter ${product.name} au panier`}
+        >
+          <span className="tn-btn-cart-icon">
             {isAdded ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span>Added</span>
-              </>
-            ) : isOutOfStock ? (
-              <span>Max in Cart</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
             ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add to Cart</span>
-              </>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
             )}
-          </button>
-        </div>
+          </span>
+          <span>
+            {isAdded ? 'Ajouté !' : isOutOfStock ? 'Stock épuisé' : 'Ajouter au panier'}
+          </span>
+        </button>
       </div>
     </article>
   );

@@ -1,42 +1,90 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ProductCard from './ProductCard';
 
-export default function ProductList({ products, onResetFilters, onToast }) {
-  if (products.length === 0) {
-    return (
-      <section className="product-list-empty" aria-label="No Products Found">
-        <div className="empty-state-box">
-          <div className="empty-icon-circle">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              <line x1="8" y1="11" x2="14" y2="11" />
-            </svg>
-          </div>
-          <h3>No products match your criteria</h3>
-          <p>Try adjusting your search keywords, clearing filters, or browsing other categories.</p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={onResetFilters}
-          >
-            Clear All Filters
-          </button>
-        </div>
-      </section>
-    );
-  }
+export default function ProductList({
+  products,
+  selectedCategory,
+  onResetFilters,
+  onToast
+}) {
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+
+  const displayedProducts = products.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => (prev > 0 ? prev - 1 : Math.max(0, totalPages - 1)));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => (prev < totalPages - 1 ? prev + 1 : 0));
+  };
 
   return (
-    <section id="catalog" className="product-grid-section" aria-label="Product Catalog">
-      <div className="product-grid">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onToast={onToast}
-          />
-        ))}
+    <section id="catalogue" className="tn-section tn-products-section">
+      <div className="tn-container">
+        {/* Section Header */}
+        <div className="tn-section-header">
+          <div className="tn-section-titles">
+            <span className="tn-section-kicker">— PRODUITS PHARES</span>
+            <h2 className="tn-section-title">
+              {selectedCategory && selectedCategory !== 'All'
+                ? `Les meilleures ventes • ${selectedCategory}`
+                : 'Les meilleures ventes'}
+            </h2>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="tn-carousel-nav-arrows">
+              <button
+                type="button"
+                className="tn-arrow-btn"
+                onClick={handlePrevPage}
+                aria-label="Produits précédents"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="tn-arrow-btn"
+                onClick={handleNextPage}
+                aria-label="Produits suivants"
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Empty State */}
+        {products.length === 0 ? (
+          <div className="tn-empty-catalog">
+            <div className="tn-empty-icon">🔍</div>
+            <h3>Aucun produit trouvé</h3>
+            <p>Essayez de modifier votre recherche ou de réinitialiser les filtres de catégorie.</p>
+            <button
+              type="button"
+              className="tn-btn-primary"
+              onClick={onResetFilters}
+            >
+              Réinitialiser les filtres
+            </button>
+          </div>
+        ) : (
+          <div className="tn-products-grid">
+            {displayedProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onToast={onToast}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

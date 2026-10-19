@@ -1,22 +1,20 @@
 import React, { useState, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { PRODUCTS, CATEGORIES } from './data/products';
 import Navbar from './components/Navbar';
-import FilterBar from './components/FilterBar';
+import HeroSection from './components/HeroSection';
+import CategoriesSection from './components/CategoriesSection';
 import ProductList from './components/ProductList';
+import PromoBanner from './components/PromoBanner';
+import TrustBar from './components/TrustBar';
+import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import Toast from './components/Toast';
-import Footer from './components/Footer';
 
 export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState('featured');
-  const [inStockOnly, setInStockOnly] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
-
-  const cartTotalQuantity = useSelector((state) => state.cart.totalQuantity);
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -28,11 +26,9 @@ export default function App() {
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedCategory('All');
-    setSortBy('featured');
-    setInStockOnly(false);
   };
 
-  // Filter and sort products based on user criteria
+  // Filter products by search query and category
   const filteredProducts = useMemo(() => {
     let result = [...PRODUCTS];
 
@@ -46,109 +42,59 @@ export default function App() {
       );
     }
 
-    if (selectedCategory !== 'All') {
+    if (selectedCategory && selectedCategory !== 'All') {
       result = result.filter((p) => p.category === selectedCategory);
     }
 
-    if (inStockOnly) {
-      result = result.filter((p) => p.stock > 0);
-    }
-
-    if (sortBy === 'price-asc') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-desc') {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'rating') {
-      result.sort((a, b) => b.rating - a.rating);
-    }
-
     return result;
-  }, [searchQuery, selectedCategory, inStockOnly, sortBy]);
+  }, [searchQuery, selectedCategory]);
 
   return (
-    <div className="app-container">
-      {/* Navigation Header */}
+    <div className="tn-app">
+      {/* Header & Navigation */}
       <Navbar
         onOpenCart={() => setIsCartOpen(true)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
-      <main className="main-content">
+      <main className="tn-main">
         {/* Hero Section */}
-        <section className="store-hero" aria-label="Store Hero Introduction">
-          <div className="hero-content">
-            <div className="hero-pill-badge">
-              <span className="dot-indicator"></span>
-              ENSTA WAMD • React & Redux Architecture
-            </div>
-            <h1 className="hero-title">
-              Engineering-Grade Tech & Peripherals
-            </h1>
-            <p className="hero-description">
-              DzTech Store showcases a high-performance frontend with centralized Redux state management.
-              Browse realistic electronics, filter by category, and manage cart state with pure predictability.
-            </p>
-            <div className="hero-actions">
-              <a href="#catalog" className="btn-hero-primary">
-                Explore Catalog ({PRODUCTS.length} Items)
-              </a>
-              <button
-                type="button"
-                className="btn-hero-secondary"
-                onClick={() => setIsCartOpen(true)}
-              >
-                View Cart ({cartTotalQuantity})
-              </button>
-            </div>
-          </div>
-
-          <div className="hero-stat-card">
-            <div className="stat-item">
-              <span className="stat-number">12</span>
-              <span className="stat-label">Products</span>
-            </div>
-            <div className="stat-separator"></div>
-            <div className="stat-item">
-              <span className="stat-number">6</span>
-              <span className="stat-label">Categories</span>
-            </div>
-            <div className="stat-separator"></div>
-            <div className="stat-item">
-              <span className="stat-number">100%</span>
-              <span className="stat-label">Redux Managed</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Filter & Search Bar */}
-        <FilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          categories={CATEGORIES}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          inStockOnly={inStockOnly}
-          onToggleInStock={setInStockOnly}
-          resultCount={filteredProducts.length}
-          onResetFilters={handleResetFilters}
+        <HeroSection
+          onExploreClick={() => setSelectedCategory('All')}
         />
 
-        {/* Product Catalog Grid */}
+        {/* Categories Section */}
+        <CategoriesSection
+          categories={CATEGORIES}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+
+        {/* Best Sellers / Products Section */}
         <ProductList
           products={filteredProducts}
+          selectedCategory={selectedCategory}
           onResetFilters={handleResetFilters}
           onToast={triggerToast}
         />
+
+        {/* Special Promo Banner */}
+        <PromoBanner
+          onOfferClick={() => setSelectedCategory('All')}
+        />
+
+        {/* 4 Guarantees / Trust Bar */}
+        <TrustBar />
       </main>
 
-      {/* Cart Drawer */}
+      {/* Cart Slide-Over Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
       />
 
-      {/* Floating Action Notifications */}
+      {/* Floating Feedback Notification */}
       <Toast
         message={toastMessage}
         onDismiss={() => setToastMessage(null)}

@@ -12,10 +12,20 @@ export default function CartItem({ item }) {
 
   const isAtMaxStock = item.stock && item.quantity >= item.stock;
 
+  const formattedUnitPrice = item.price.toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const formattedTotal = (item.price * item.quantity).toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   return (
-    <div className="cart-item-row">
+    <div className="tn-cart-row">
       {/* Thumbnail */}
-      <div className="cart-item-thumb">
+      <div className="tn-cart-thumb">
         <img
           src={
             imgError
@@ -27,36 +37,30 @@ export default function CartItem({ item }) {
         />
       </div>
 
-      {/* Info */}
-      <div className="cart-item-details">
-        <div className="cart-item-header">
-          <span className="cart-item-cat">{item.category}</span>
-          <h4 className="cart-item-title">{item.name}</h4>
-        </div>
-        <div className="cart-item-unit-price">
-          ${item.price.toFixed(2)} each
-        </div>
+      {/* Details */}
+      <div className="tn-cart-info">
+        <span className="tn-cart-cat">{item.category}</span>
+        <h4 className="tn-cart-title">{item.name}</h4>
+        <span className="tn-cart-unit-price">{formattedUnitPrice} DA l'unité</span>
 
-        {/* Quantity Controls and Remove */}
-        <div className="cart-item-actions">
-          <div className="stepper" role="group" aria-label={`Quantity for ${item.name}`}>
+        {/* Stepper + Remove */}
+        <div className="tn-cart-actions-row">
+          <div className="tn-stepper">
             <button
               type="button"
-              className="stepper-btn"
+              className="tn-stepper-btn"
               onClick={() => dispatch(decreaseQuantity(item.id))}
-              aria-label={`Decrease quantity of ${item.name}`}
+              aria-label="Diminuer la quantité"
             >
               −
             </button>
-            <span className="stepper-val" aria-live="polite">
-              {item.quantity}
-            </span>
+            <span className="tn-stepper-value">{item.quantity}</span>
             <button
               type="button"
-              className="stepper-btn"
+              className="tn-stepper-btn"
               onClick={() => dispatch(increaseQuantity(item.id))}
               disabled={isAtMaxStock}
-              aria-label={`Increase quantity of ${item.name}`}
+              aria-label="Augmenter la quantité"
             >
               +
             </button>
@@ -64,22 +68,22 @@ export default function CartItem({ item }) {
 
           <button
             type="button"
-            className="cart-remove-btn"
+            className="tn-cart-remove"
             onClick={() => dispatch(removeFromCart(item.id))}
-            aria-label={`Remove ${item.name} from cart`}
+            aria-label="Supprimer cet article"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
-            <span>Remove</span>
+            <span>Supprimer</span>
           </button>
         </div>
       </div>
 
-      {/* Line Subtotal */}
-      <div className="cart-item-total">
-        ${(item.price * item.quantity).toFixed(2)}
+      {/* Line Total */}
+      <div className="tn-cart-row-total">
+        {formattedTotal} DA
       </div>
     </div>
   );
